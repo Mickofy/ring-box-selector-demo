@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Aurelle — Ring Box Selector Prototype</title>
+  <meta name="description" content="Interactive Shopify-style product page prototype for a Ring Box Selector feature.">
+  <style>
+    :root{--ink:#191817;--muted:#736e68;--line:#e8e4df;--soft:#f7f4f1;--rose:#d8a5a7;--rose-dark:#b77f81;--cream:#f3d9d7;--white:#fff;--max:1220px}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;color:var(--ink);background:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+    button,input{font:inherit}
+    button{color:inherit}
+    a{color:inherit;text-decoration:none}
+    .page{width:min(calc(100% - 40px),var(--max));margin:auto}
+    .demo-bar{background:#181716;color:#fff;text-align:center;padding:8px 16px;font-size:11px;letter-spacing:.06em}
+    .header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+    .header__inner{height:72px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px}
+    .nav,.actions{display:flex;align-items:center;gap:24px}
+    .nav{font-size:13px}.actions{justify-self:end;gap:8px}
+    .brand{justify-self:center;font-family:Georgia,serif;font-size:23px;letter-spacing:.18em}
+    .icon{position:relative;width:40px;height:40px;display:grid;place-items:center;border:0;background:transparent;cursor:pointer}
+    .icon svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.6}
+    .count{position:absolute;right:0;top:1px;width:18px;height:18px;display:grid;place-items:center;border-radius:50%;background:#181716;color:#fff;font-size:10px}
+    .crumbs{display:flex;gap:8px;padding:22px 0;color:var(--muted);font-size:12px}
+    .product{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(390px,.92fr);gap:54px;align-items:start;padding-bottom:66px}
+    .gallery{position:sticky;top:112px}
+    .hero-visual{position:relative;aspect-ratio:1;display:grid;place-items:center;overflow:hidden;background:linear-gradient(145deg,#faf7f4,#f1ebe5)}
+    .badge{position:absolute;top:17px;left:17px;padding:7px 10px;background:#fff;border:1px solid rgba(0,0,0,.07);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    .box-art{width:76%;max-width:520px}
+    .thumbs{display:grid;grid-template-columns:repeat(3,82px);gap:10px;margin-top:12px}
+    .thumb{aspect-ratio:1;border:1px solid transparent;background:var(--soft);padding:7px;cursor:pointer}
+    .thumb.is-active{border-color:#181716}
+    .thumb svg{width:100%;height:100%}
+    .eyebrow{margin:0 0 8px;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.14em}
+    h1,h2,h3{font-family:Georgia,serif;font-weight:500}
+    h1{margin:0;font-size:clamp(34px,4vw,48px);line-height:1.05}
+    .rating{display:flex;gap:10px;align-items:center;margin-top:14px;font-size:12px}
+    .stars{letter-spacing:.12em;font-size:11px}.rating a{text-decoration:underline}
+    .price-row{display:flex;gap:10px;align-items:center;margin-top:18px}.price{font-size:19px;font-weight:700}.compare{text-decoration:line-through;color:var(--muted)}
+    .sale{padding:4px 8px;background:#f3e8e7;color:#754f4e;font-size:10px;font-weight:700}
+    .copy{margin:18px 0 0;color:var(--muted);font-size:14px;max-width:58ch}
+    .divider{height:1px;background:var(--line);margin:25px 0}
+    .option-head{display:flex;justify-content:space-between;margin-bottom:11px;font-size:12px}.swatches{display:flex;gap:11px}
+    .swatch{width:38px;height:38px;border-radius:50%;border:2px solid #fff;background:var(--c);box-shadow:0 0 0 1px #cfc9c2;cursor:pointer}
+    .swatch.is-active{box-shadow:0 0 0 2px #181716}
+    .selector{margin-top:28px;padding:22px;border:1px solid var(--line);border-radius:10px;background:#fcfbfa}
+    .selector-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+    .step{display:inline-block;padding:3px 7px;margin-bottom:6px;border-radius:999px;background:#181716;color:#fff;font-size:9px;font-weight:700;letter-spacing:.08em}
+    .selector h2{margin:0;font-size:24px}.required{color:var(--muted);font-size:10px}.selector-copy{margin:7px 0 17px;color:var(--muted);font-size:11px}
+    .ring-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+    .ring-card{padding:0;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:#fff;text-align:left;cursor:pointer;transition:.18s ease}
+    .ring-card:hover{transform:translateY(-2px);border-color:#bdb6af}.ring-card.is-selected{border-color:#181716;box-shadow:0 0 0 1px #181716}
+    .ring-art{position:relative;aspect-ratio:1;background:linear-gradient(145deg,#faf8f5,#f3eee9);display:grid;place-items:center}.ring-art svg{width:82%;height:82%}
+    .check{position:absolute;top:7px;right:7px;width:23px;height:23px;display:grid;place-items:center;border-radius:50%;background:#181716;color:#fff;font-size:11px;opacity:0;transform:scale(.8);transition:.18s}
+    .ring-card.is-selected .check{opacity:1;transform:scale(1)}
+    .ring-body{padding:9px}.ring-name{display:block;min-height:31px;font-size:10px;font-weight:700;line-height:1.35}.ring-price{display:block;margin-top:3px;color:var(--muted);font-size:10px}
+    .selected{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:13px;padding-top:13px;border-top:1px solid var(--line)}
+    .selected small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em}.selected strong{font-size:12px}.selected button{border:0;background:none;text-decoration:underline;font-size:11px;cursor:pointer}
+    .qty-label{display:block;margin:22px 0 7px;font-size:11px}.qty{width:126px;display:grid;grid-template-columns:38px 1fr 38px;border:1px solid var(--line)}
+    .qty button,.qty input{height:40px;border:0;background:#fff;text-align:center}.qty button{cursor:pointer}.qty input{width:100%}
+    .add{width:100%;min-height:54px;margin-top:15px;padding:0 18px;display:flex;justify-content:space-between;align-items:center;border:1px solid #181716;background:#181716;color:#fff;font-weight:700;cursor:pointer}
+    .add:disabled{border-color:#c8c3be;background:#c8c3be;cursor:not-allowed}.hint{margin:8px 0 0;color:#8d5f5d;font-size:10px}
+    .trust{display:flex;flex-wrap:wrap;gap:7px 13px;margin-top:15px;color:var(--muted);font-size:10px}.trust span:before{content:"✓";margin-right:5px;color:var(--ink)}
+    details{border-bottom:1px solid var(--line)}.accordions{margin-top:27px;border-top:1px solid var(--line)}
+    summary{padding:16px 0;list-style:none;cursor:pointer;font-size:12px;font-weight:700}summary::-webkit-details-marker{display:none}summary:after{content:"+";float:right;font-weight:400}details[open] summary:after{content:"−"}
+    details p{margin:-3px 0 17px;color:var(--muted);font-size:11px}
+    .feature-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin:14px 0 86px;background:var(--line);border:1px solid var(--line)}
+    .feature-strip div{background:#fff;padding:23px}.feature-strip strong,.feature-strip span{display:block}.feature-strip strong{font-family:Georgia,serif;font-size:17px;font-weight:500}.feature-strip span{margin-top:5px;color:var(--muted);font-size:11px}
+    .reviews{padding-bottom:90px}.reviews h2{margin:0;max-width:650px;font-size:clamp(30px,4vw,44px)}.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:30px}
+    .review{padding:23px;border:1px solid var(--line)}.review p{font-family:Georgia,serif;font-size:17px;line-height:1.45}.review small{color:var(--muted)}
+    .overlay{position:fixed;inset:0;z-index:39;background:rgba(0,0,0,.32)}
+    .drawer{position:fixed;top:0;right:0;z-index:40;width:min(440px,100%);height:100dvh;display:flex;flex-direction:column;background:#fff;transform:translateX(100%);transition:.25s ease;box-shadow:-20px 0 60px rgba(0,0,0,.08)}
+    .drawer.is-open{transform:translateX(0)}.drawer-head{display:flex;justify-content:space-between;padding:23px;border-bottom:1px solid var(--line)}.drawer h2{margin:0;font-size:29px}
+    .close{width:42px;height:42px;border:0;background:none;font-size:28px;cursor:pointer}.drawer-body{flex:1;overflow:auto;padding:23px}.empty{color:var(--muted);font-size:12px}
+    .cart-item{display:grid;grid-template-columns:84px 1fr;gap:13px;padding-bottom:17px;margin-bottom:17px;border-bottom:1px solid var(--line)}.cart-thumb{aspect-ratio:1;background:var(--soft);display:grid;place-items:center}.cart-thumb svg{width:78%;height:78%}
+    .cart-item h3{margin:0;font-size:17px}.cart-item p{margin:4px 0 0;color:var(--muted);font-size:10px}.cart-price{margin-top:9px;font-size:11px;font-weight:700}
+    .drawer-foot{padding:21px 23px;border-top:1px solid var(--line)}.subtotal{display:flex;justify-content:space-between;margin-bottom:13px}.checkout{width:100%;min-height:50px;border:0;background:#181716;color:#fff;font-weight:700;cursor:pointer}
+    .drawer-foot p{text-align:center;margin:8px 0 0;color:var(--muted);font-size:9px}
+    .toast{position:fixed;left:50%;bottom:24px;z-index:50;padding:11px 17px;border-radius:999px;background:#181716;color:#fff;font-size:11px;opacity:0;transform:translate(-50%,12px);pointer-events:none;transition:.2s}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+    [hidden]{display:none!important}
+    @media(max-width:900px){.nav{display:none}.product{grid-template-columns:1fr;gap:34px}.gallery{position:static}.feature-strip,.review-grid{grid-template-columns:1fr}}
+    @media(max-width:560px){.page{width:min(calc(100% - 24px),var(--max))}.header__inner{height:60px}.brand{font-size:19px}.crumbs{padding:15px 0}.thumbs{grid-template-columns:repeat(3,64px)}.selector{padding:15px 11px}.ring-grid{gap:6px}.ring-body{padding:7px 5px}.ring-name{font-size:9px;min-height:28px}.ring-price{font-size:9px}.trust{display:grid;grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+  <div class="demo-bar">INTERACTIVE CONCEPT PROTOTYPE — SAMPLE PRODUCTS ONLY</div>
+
+  <header class="header">
+    <div class="page header__inner">
+      <nav class="nav" aria-label="Primary"><a href="#">New</a><a href="#">Jewelry</a><a href="#">Ring Boxes</a><a href="#">Gifts</a></nav>
+      <a class="brand" href="#">AURELLE</a>
+      <div class="actions">
+        <button class="icon" aria-label="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg></button>
+        <button class="icon cart-open" aria-label="Open cart"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg><span class="count">0</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <nav class="crumbs"><span>Home</span><span>/</span><span>Ring Boxes</span><span>/</span><span>Velvet Ring Box</span></nav>
+
+    <section class="product">
+      <div class="gallery">
+        <div class="hero-visual">
+          <span class="badge">Bestseller</span>
+          <svg class="box-art" viewBox="0 0 900 900" aria-label="Blush velvet ring box" role="img">
+            <ellipse cx="450" cy="700" rx="250" ry="45" fill="#d8d2cc" opacity=".35"/>
+            <rect x="205" y="320" width="490" height="360" rx="74" fill="#d9a7a8"/>
+            <path d="M205 470c0-160 490-160 490 0v130H205Z" fill="#c98e90"/>
+            <path d="M250 450c20-105 380-105 400 0v142H250Z" fill="#f3d9d7"/>
+            <ellipse cx="450" cy="515" rx="72" ry="30" fill="none" stroke="#8c6e6c" stroke-width="13"/>
+            <polygon points="450,404 486,465 450,493 414,465" fill="#fff" stroke="#b59a98" stroke-width="5"/>
+          </svg>
+        </div>
+        <div class="thumbs" aria-label="Product images">
+          <button class="thumb is-active" aria-label="Front view"><svg viewBox="0 0 200 200"><rect x="34" y="73" width="132" height="86" rx="20" fill="#d9a7a8"/><path d="M34 112c0-42 132-42 132 0v29H34Z" fill="#c98e90"/><polygon points="100,79 113,101 100,112 87,101" fill="#fff" stroke="#b59a98" stroke-width="2"/></svg></button>
+          <button class="thumb" aria-label="Angle view"><svg viewBox="0 0 200 200"><path d="M45 119 93 74 158 99 110 148Z" fill="#d9a7a8"/><path d="M45 119v24l65 29v-24Z" fill="#c98e90"/><path d="M110 148 158 99v25l-48 48Z" fill="#b77f81"/></svg></button>
+          <button class="thumb" aria-label="Detail view"><svg viewBox="0 0 200 200"><rect x="39" y="46" width="122" height="108" rx="20" fill="#d9a7a8"/><rect x="51" y="58" width="98" height="84" rx="15" fill="#f3d9d7"/><ellipse cx="100" cy="105" rx="29" ry="13" fill="none" stroke="#8c6e6c" stroke-width="6"/></svg></button>
+        </div>
+      </div>
+
+      <div class="info">
+        <p class="eyebrow">THE SIGNATURE COLLECTION</p>
+        <h1>Velvet Ring Box</h1>
+        <div class="rating"><span class="stars">★★★★★</span><a href="#reviews">128 reviews</a></div>
+        <div class="price-row"><span class="price">$49.00</span><span class="compare">$59.00</span><span class="sale">Save $10</span></div>
+        <p class="copy">A soft-touch velvet jewelry box designed for gifting, proposals, and keepsakes. Choose the ring you want placed inside before adding both items to your cart.</p>
+
+        <div class="divider"></div>
+        <div class="option-head"><span>Box color</span><strong id="color-name">Blush</strong></div>
+        <div class="swatches">
+          <button class="swatch is-active" style="--c:#d9a7a8" data-color="Blush" aria-label="Blush"></button>
+          <button class="swatch" style="--c:#e8e0d4" data-color="Ivory" aria-label="Ivory"></button>
+          <button class="swatch" style="--c:#aeb9a9" data-color="Sage" aria-label="Sage"></button>
+        </div>
+
+        <section class="selector">
+          <div class="selector-head">
+            <div><span class="step">STEP 1</span><h2>Choose your ring</h2></div>
+            <span class="required">Required</span>
+          </div>
+          <p class="selector-copy">Pick one ring to include with your box. In Shopify, the merchant would choose these products from Theme Editor product-picker blocks.</p>
+
+          <div class="ring-grid">
+            <button class="ring-card" data-title="Classic Solitaire" data-price="299">
+              <div class="ring-art"><span class="check">✓</span><svg viewBox="0 0 200 200"><circle cx="100" cy="116" r="47" fill="none" stroke="#c7b79e" stroke-width="9"/><path d="M100 68v26" stroke="#c7b79e" stroke-width="8" stroke-linecap="round"/><polygon points="100,37 120,63 100,83 80,63" fill="#fff" stroke="#aaa29a" stroke-width="3"/></svg></div>
+              <div class="ring-body"><span class="ring-name">Classic Solitaire</span><span class="ring-price">$299</span></div>
+            </button>
+            <button class="ring-card" data-title="Hidden Halo" data-price="349">
+              <div class="ring-art"><span class="check">✓</span><svg viewBox="0 0 200 200"><circle cx="100" cy="116" r="47" fill="none" stroke="#c7b79e" stroke-width="9"/><circle cx="100" cy="62" r="25" fill="none" stroke="#c7b79e" stroke-width="4"/><polygon points="100,36 119,62 100,82 81,62" fill="#fff" stroke="#aaa29a" stroke-width="3"/></svg></div>
+              <div class="ring-body"><span class="ring-name">Hidden Halo</span><span class="ring-price">$349</span></div>
+            </button>
+            <button class="ring-card" data-title="Twist Band" data-price="319">
+              <div class="ring-art"><span class="check">✓</span><svg viewBox="0 0 200 200"><path d="M58 144c23-70 61-70 84 0" fill="none" stroke="#c7b79e" stroke-width="9"/><path d="M61 144c32-42 47-42 78 0" fill="none" stroke="#e7dcca" stroke-width="5"/><polygon points="100,39 119,64 100,84 81,64" fill="#fff" stroke="#aaa29a" stroke-width="3"/></svg></div>
+              <div class="ring-body"><span class="ring-name">Twist Band</span><span class="ring-price">$319</span></div>
+            </button>
+            <button class="ring-card" data-title="Vintage Bloom" data-price="329">
+              <div class="ring-art"><span class="check">✓</span><svg viewBox="0 0 200 200"><circle cx="100" cy="118" r="45" fill="none" stroke="#c7b79e" stroke-width="9"/><g fill="#fff" stroke="#aaa29a" stroke-width="2"><circle cx="100" cy="58" r="13"/><circle cx="87" cy="54" r="9"/><circle cx="113" cy="54" r="9"/><circle cx="89" cy="67" r="9"/><circle cx="111" cy="67" r="9"/></g></svg></div>
+              <div class="ring-body"><span class="ring-name">Vintage Bloom</span><span class="ring-price">$329</span></div>
+            </button>
+            <button class="ring-card" data-title="Emerald Cut" data-price="399">
+              <div class="ring-art"><span class="check">✓</span><svg viewBox="0 0 200 200"><circle cx="100" cy="118" r="45" fill="none" stroke="#c7b79e" stroke-width="9"/><rect x="78" y="35" width="44" height="52" rx="3" fill="#fff" stroke="#aaa29a" stroke-width="3"/></svg></div>
+              <div class="ring-body"><span class="ring-name">Emerald Cut</span><span class="ring-price">$399</span></div>
+            </button>
+            <button class="ring-card" data-title="Pear Halo" data-price="359">
+              <div class="ring-art"><span class="check">✓</span><svg viewBox="0 0 200 200"><circle cx="100" cy="118" r="45" fill="none" stroke="#c7b79e" stroke-width="9"/><path d="M100 34c24 26 30 43 0 64-30-21-24-38 0-64Z" fill="#fff" stroke="#aaa29a" stroke-width="3"/></svg></div>
+              <div class="ring-body"><span class="ring-name">Pear Halo</span><span class="ring-price">$359</span></div>
+            </button>
+          </div>
+
+          <div class="selected" id="selected" hidden>
+            <div><small>Selected ring</small><strong id="selected-name"></strong></div>
+            <button type="button" id="change">Change</button>
+          </div>
+        </section>
+
+        <span class="qty-label">Quantity</span>
+        <div class="qty"><button id="minus" type="button">−</button><input id="qty" value="1" min="1" type="number" aria-label="Quantity"><button id="plus" type="button">+</button></div>
+        <button class="add" id="add" type="button" disabled><span>Add Box + Ring to Cart</span><span id="total">$49.00</span></button>
+        <p class="hint" id="hint">Select a ring to continue.</p>
+        <div class="trust"><span>Free shipping over $75</span><span>30-day returns</span><span>Secure checkout</span></div>
+
+        <div class="accordions">
+          <details open><summary>Product details</summary><p>Premium velvet exterior, soft micro-suede interior, and a secure hinged lid. Designed to hold one ring.</p></details>
+          <details><summary>Shipping & returns</summary><p>Ships in 1–2 business days. Returns accepted within 30 days on unused items.</p></details>
+          <details><summary>How this works in Shopify</summary><p>The final implementation would use Liquid, section schema product pickers, real variant IDs, availability handling, and Shopify's Ajax Cart API.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="feature-strip">
+      <div><strong>Theme Editor ready</strong><span>Merchant-selectable ring products</span></div>
+      <div><strong>Responsive grid</strong><span>Three ring choices per row</span></div>
+      <div><strong>Bundle cart flow</strong><span>Box and selected ring added together</span></div>
+    </section>
+
+    <section class="reviews" id="reviews">
+      <p class="eyebrow">CUSTOMER REVIEWS</p><h2>Designed to make gifting feel special.</h2>
+      <div class="review-grid">
+        <article class="review"><div class="stars">★★★★★</div><p>“The box feels premium and the whole selection experience was easy.”</p><small>— Sample review</small></article>
+        <article class="review"><div class="stars">★★★★★</div><p>“Loved being able to pair the box with the exact ring I wanted.”</p><small>— Sample review</small></article>
+        <article class="review"><div class="stars">★★★★★</div><p>“Clean, simple, and perfect for a gift.”</p><small>— Sample review</small></article>
+      </div>
+    </section>
+  </main>
+
+  <div class="overlay" id="overlay" hidden></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-head"><div><p class="eyebrow">YOUR BAG</p><h2>Cart</h2></div><button class="close" id="close" aria-label="Close cart">×</button></div>
+    <div class="drawer-body" id="drawer-body"><p class="empty">Your cart is empty.</p></div>
+    <div class="drawer-foot" id="drawer-foot" hidden><div class="subtotal"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div><button class="checkout">Checkout</button><p>Taxes and shipping calculated at checkout.</p></div>
+  </aside>
+  <div class="toast" id="toast">Added to cart</div>
+
+  <script>
+    var BOX_PRICE=49,selectedRing=null;
+    var cards=[].slice.call(document.querySelectorAll('.ring-card'));
+    var add=document.getElementById('add'),qty=document.getElementById('qty'),total=document.getElementById('total');
+    function money(v){return '$'+Number(v).toFixed(2)}
+    function quantity(){return Math.max(1,parseInt(qty.value||'1',10))}
+    function updateTotal(){var ring=selectedRing?selectedRing.price:0;total.textContent=money((BOX_PRICE+ring)*quantity())}
+    cards.forEach(function(card){card.addEventListener('click',function(){
+      cards.forEach(function(c){c.classList.remove('is-selected')});
+      card.classList.add('is-selected');
+      selectedRing={title:card.dataset.title,price:Number(card.dataset.price)};
+      document.getElementById('selected-name').textContent=selectedRing.title+' — '+money(selectedRing.price);
+      document.getElementById('selected').hidden=false;document.getElementById('hint').hidden=true;add.disabled=false;updateTotal();
+    })});
+    document.querySelectorAll('.swatch').forEach(function(s){s.addEventListener('click',function(){
+      document.querySelectorAll('.swatch').forEach(function(x){x.classList.remove('is-active')});s.classList.add('is-active');document.getElementById('color-name').textContent=s.dataset.color;
+    })});
+    document.querySelectorAll('.thumb').forEach(function(t){t.addEventListener('click',function(){document.querySelectorAll('.thumb').forEach(function(x){x.classList.remove('is-active')});t.classList.add('is-active')})});
+    document.getElementById('minus').onclick=function(){qty.value=Math.max(1,quantity()-1);updateTotal()};
+    document.getElementById('plus').onclick=function(){qty.value=quantity()+1;updateTotal()};
+    qty.oninput=function(){if(quantity()<1)qty.value=1;updateTotal()};
+    document.getElementById('change').onclick=function(){document.querySelector('.ring-grid').scrollIntoView({behavior:'smooth',block:'center'})};
+    var drawer=document.getElementById('drawer'),overlay=document.getElementById('overlay');
+    function openDrawer(){overlay.hidden=false;drawer.classList.add('is-open');drawer.setAttribute('aria-hidden','false');document.body.style.overflow='hidden'}
+    function closeDrawer(){drawer.classList.remove('is-open');drawer.setAttribute('aria-hidden','true');overlay.hidden=true;document.body.style.overflow=''}
+    document.getElementById('close').onclick=closeDrawer;overlay.onclick=closeDrawer;document.querySelector('.cart-open').onclick=openDrawer;
+    add.onclick=function(){
+      if(!selectedRing)return;
+      var q=quantity(),color=document.getElementById('color-name').textContent,subtotal=(BOX_PRICE+selectedRing.price)*q;
+      document.getElementById('drawer-body').innerHTML=
+        '<article class="cart-item"><div class="cart-thumb"><svg viewBox="0 0 200 200"><rect x="34" y="73" width="132" height="86" rx="20" fill="#d9a7a8"/><path d="M34 112c0-42 132-42 132 0v29H34Z" fill="#c98e90"/></svg></div><div><h3>Velvet Ring Box</h3><p>Color: '+color+'</p><p>Quantity: '+q+'</p><div class="cart-price">'+money(BOX_PRICE*q)+'</div></div></article>'+
+        '<article class="cart-item"><div class="cart-thumb"><svg viewBox="0 0 200 200"><circle cx="100" cy="116" r="47" fill="none" stroke="#c7b79e" stroke-width="9"/><polygon points="100,37 120,63 100,83 80,63" fill="#fff" stroke="#aaa29a" stroke-width="3"/></svg></div><div><h3>'+selectedRing.title+'</h3><p>Paired with Velvet Ring Box</p><p>Quantity: '+q+'</p><div class="cart-price">'+money(selectedRing.price*q)+'</div></div></article>';
+      document.getElementById('subtotal').textContent=money(subtotal);document.getElementById('drawer-foot').hidden=false;document.querySelector('.count').textContent=String(q*2);
+      var toast=document.getElementById('toast');toast.classList.add('show');setTimeout(function(){toast.classList.remove('show')},1600);openDrawer();
+    };
+    updateTotal();
+  </script>
+</body>
+</html>
